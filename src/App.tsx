@@ -12,6 +12,7 @@ import { CommunicatePhase } from './components/DRUCOK/CommunicatePhase';
 import { AnalyzePhase } from './components/DRUCOK/AnalyzePhase';
 import { LabGovernanceDashboard } from './components/Dashboard/LabGovernanceDashboard';
 import { DigitalTheoryBank } from './components/DigitalTheoryBank';
+import { BabylonCircuit3D } from './components/Simulasi3D/BabylonCircuit3D';
 
 function buildDefaultModuleGraph(module: PracticumModule): { nodes: Node<LogicNodeData>[]; edges: Edge[] } {
   let nodes: Node<LogicNodeData>[] = [];
@@ -674,6 +675,17 @@ export default function App() {
             setViewMode={setViewMode}
             onNextPhase={() => setCurrentTab('VALIDATOR')}
           />
+        )}
+
+        {currentTab === 'SIMULATOR_3D' && (
+          <div className="w-full max-w-7xl mx-auto space-y-4">
+            <BabylonCircuit3D
+              module={activeModule}
+              nodes={nodes}
+              edges={edges}
+              onStateChange={(newNodes) => setNodes(newNodes)}
+            />
+          </div>
         )}
 
         {currentTab === 'LAB_EXERCISES' && (

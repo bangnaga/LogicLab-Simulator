@@ -22,6 +22,7 @@ import { LogicNodeData, evaluateLogicGraph } from '../../utils/logicEngine';
 import { generateVibeCode } from '../../utils/codeGenerator';
 import { PracticumModule, ViewMode } from '../../types';
 import { BooleanLaTeXSidebar } from '../BooleanLaTeXSidebar';
+import { BabylonCircuit3D } from '../Simulasi3D/BabylonCircuit3D';
 import {
   Layers,
   CircuitBoard,
@@ -51,6 +52,7 @@ import {
   ChevronRight,
   Sigma,
   Scissors,
+  Box,
 } from 'lucide-react';
 
 const edgeTypes = {
@@ -89,6 +91,7 @@ export const CreatePhase: React.FC<CreatePhaseProps> = ({
   const [isLeftSidebarOpen, setIsLeftSidebarOpen] = useState<boolean>(true);
   const [isRightSidebarOpen, setIsRightSidebarOpen] = useState<boolean>(false);
   const [isFullscreenCanvas, setIsFullscreenCanvas] = useState<boolean>(false);
+  const [is3DMode, setIs3DMode] = useState<boolean>(false);
 
   const reactFlowWrapper = useRef<HTMLDivElement>(null);
   const [reactFlowInstance, setReactFlowInstance] = useState<ReactFlowInstance | null>(null);
@@ -545,8 +548,21 @@ export const CreatePhase: React.FC<CreatePhaseProps> = ({
                 </button>
               </div>
 
-              {/* Right Group: Boolean Analysis Toggle & Expand Canvas */}
+              {/* Right Group: 3D Toggle, Boolean Analysis Toggle & Expand Canvas */}
               <div className="flex items-center gap-2 bg-white/95 backdrop-blur-md p-1.5 rounded-lg border border-[#CBD5E1] shadow-md text-xs font-semibold text-[#1A1C1E] pointer-events-auto">
+                <button
+                  onClick={() => setIs3DMode(!is3DMode)}
+                  className={`px-2.5 py-1.5 rounded-md text-xs font-extrabold transition-all flex items-center gap-1.5 border shadow-xs ${
+                    is3DMode
+                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white border-blue-500 shadow-md shadow-blue-500/20'
+                      : 'bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100'
+                  }`}
+                  title="Ganti Tampilan Ke Simulasi 3D Breadboard IC (Babylon.js)"
+                >
+                  <Box className={`w-4 h-4 ${is3DMode ? 'text-cyan-300 animate-spin' : 'text-emerald-600'}`} />
+                  <span>{is3DMode ? 'Mode 2D Schematic' : 'Simulasi 3D Lab'}</span>
+                </button>
+
                 <button
                   onClick={() => setIsRightSidebarOpen(!isRightSidebarOpen)}
                   className={`px-2.5 py-1.5 rounded-md text-xs font-extrabold transition-all flex items-center gap-1.5 border ${
@@ -611,26 +627,37 @@ export const CreatePhase: React.FC<CreatePhaseProps> = ({
               </div>
             )}
 
-            {/* Core ReactFlow Canvas */}
-            <ReactFlow
-              nodes={preparedNodes}
-              edges={preparedEdges}
-              onNodesChange={onNodesChange}
-              onEdgesChange={onEdgesChange}
-              onEdgesDelete={onEdgesDelete}
-              onConnect={onConnect}
-              onInit={setReactFlowInstance}
-              nodeTypes={nodeTypes}
-              edgeTypes={edgeTypes}
-              deleteKeyCode={['Backspace', 'Delete']}
-              fitView
-              colorMode="light"
-              snapToGrid={snapToGrid}
-              snapGrid={[20, 20]}
-            >
-              {bgType === 'dots' && <Background variant={BackgroundVariant.Dots} gap={20} size={1.2} color="#CBD5E1" />}
-              <Controls className="!bg-white !border-[#D1D5DB] !text-[#1A1C1E] !shadow-sm !top-16" />
-            </ReactFlow>
+            {/* Core Workspace View: 3D Babylon.js Simulation OR 2D ReactFlow Canvas */}
+            {is3DMode ? (
+              <div className="w-full h-full p-2">
+                <BabylonCircuit3D
+                  module={module}
+                  nodes={nodes}
+                  edges={edges}
+                  onStateChange={(newNodes) => setNodes(newNodes)}
+                />
+              </div>
+            ) : (
+              <ReactFlow
+                nodes={preparedNodes}
+                edges={preparedEdges}
+                onNodesChange={onNodesChange}
+                onEdgesChange={onEdgesChange}
+                onEdgesDelete={onEdgesDelete}
+                onConnect={onConnect}
+                onInit={setReactFlowInstance}
+                nodeTypes={nodeTypes}
+                edgeTypes={edgeTypes}
+                deleteKeyCode={['Backspace', 'Delete']}
+                fitView
+                colorMode="light"
+                snapToGrid={snapToGrid}
+                snapGrid={[20, 20]}
+              >
+                {bgType === 'dots' && <Background variant={BackgroundVariant.Dots} gap={20} size={1.2} color="#CBD5E1" />}
+                <Controls className="!bg-white !border-[#D1D5DB] !text-[#1A1C1E] !shadow-sm !top-16" />
+              </ReactFlow>
+            )}
 
             {/* Floating Selection Panel for Deleting Selected Wire Edges */}
             {preparedEdges.some((e) => e.selected) && (

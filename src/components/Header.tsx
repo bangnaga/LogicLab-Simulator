@@ -1,6 +1,6 @@
 import React from 'react';
 import { AppTabMode, PracticumModule } from '../types';
-import { Cpu, CircuitBoard, BookOpen, CheckCircle2, FileText, Cpu as ChipIcon, Download, Upload, GraduationCap } from 'lucide-react';
+import { Cpu, CircuitBoard, BookOpen, CheckCircle2, FileText, Cpu as ChipIcon, Download, Upload, GraduationCap, Box } from 'lucide-react';
 
 interface HeaderProps {
   currentTab: AppTabMode;
@@ -23,6 +23,7 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
   const tabs: { id: AppTabMode; label: string; icon: React.ReactNode }[] = [
     { id: 'SIMULATOR', label: 'Simulator Workbench', icon: <CircuitBoard className="w-4 h-4" /> },
+    { id: 'SIMULATOR_3D', label: 'Simulasi 3D Lab', icon: <Box className="w-4 h-4 text-emerald-600" /> },
     { id: 'THEORY', label: 'Bank Teori (8 Bab)', icon: <BookOpen className="w-4 h-4 text-blue-600" /> },
     { id: 'LAB_EXERCISES', label: 'File Latihan & Modul', icon: <BookOpen className="w-4 h-4" /> },
     { id: 'VALIDATOR', label: 'Uji Tabel Kebenaran', icon: <CheckCircle2 className="w-4 h-4" /> },

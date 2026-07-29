@@ -1,4 +1,4 @@
-export type AppTabMode = 'SIMULATOR' | 'LAB_EXERCISES' | 'THEORY' | 'VALIDATOR' | 'REPORT' | 'DATASHEETS' | 'CURRICULUM';
+export type AppTabMode = 'SIMULATOR' | 'SIMULATOR_3D' | 'LAB_EXERCISES' | 'THEORY' | 'VALIDATOR' | 'REPORT' | 'DATASHEETS' | 'CURRICULUM';
 
 export type ViewMode = 'SCHEMATIC';
 

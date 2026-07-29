@@ -20,9 +20,14 @@ Setiap modul praktikum disusun secara terstruktur mengikuti siklus 6 fase DRUCOK
 * **Demonstrating Phase**: Demonstrasi visual konsep dasar & video/tampilan pengenalan modul.
 * **Researching Phase**: Studi literatur, pengamatan spesifikasi praktikum, dan analisis masalah.
 * **Understanding Phase**: Penyusunan tabel kebenaran interaktif, penyederhanaan fungsi Boolean, dan verifikasi ekspresi matematika.
-* **Creating Phase (Interactive Logic Canvas)**:
-  * Workspace interaktif berbasis **ReactFlow** dengan pilihan background (Breadboard Grid, Dots, Blank).
+* **Creating Phase (Interactive Logic Canvas & 3D Breadboard)**:
+  * Workspace interaktif berbasis **ReactFlow** (2D Schematic) & **Babylon.js** (3D Real-Time Physical Breadboard Simulation).
   * Dukungan *Snap to Grid* (20px) untuk kerapian penataan komponen.
+  * **Simulasi 3D Breadboard IC (Babylon.js)**:
+    * Komponen 3D realitis: Breadboard fisik dengan pinhole grid, DIP-14 IC Chips (7408 AND, 7432 OR, 7404 NOT, 7400 NAND, 7486 XOR), saklar toggle 3D, LED indikator emissive 3D dengan pendaran cahaya point light, dan kabel jumper 3D melengkung (*Catmull-Rom Spline*).
+    * **Kamera Interaktif 3D**: Kontrol orbit 360°, zoom, dan preset sudut pandang (Isometric 3D, Top-Down 2D, IC Pin Close-Up, dan Multimeter View).
+    * **Multimeter Digital 3D**: Pembacaan tegangan pin real-time (5.02V HIGH / 0.04V LOW) dan status indikator logika.
+    * **Pilihan Atmosfer Lab**: Mode Clean Light Lab, Dark Studio, dan Amber Vintage.
   * Pustaka Komponen Lengkap:
     * **Input**: Switch Logika (HIGH/LOW), Clock Pulse Generator, Constant VCC / GND.
     * **Gerbang Logika Utama**: AND, OR, NOT, NAND, NOR, XOR, XNOR (2-Input & Multi-Input).
