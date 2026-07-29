@@ -1,0 +1,6 @@
+{
+  "name": "LogicLab",
+  "description": "Simulator Gerbang Logika & Fondasi IoT berbasis kerangka DR-UCOK (Definisikan, Rumuskan, Uraikan, Ciptakan, Operasikan, Komunikasikan)",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,60 @@
+@import "tailwindcss";
+@import "@xyflow/react/dist/style.css";
+
+@layer base {
+  body {
+    background-color: #F4F5F7;
+    color: #1A1C1E;
+    font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+  }
+}
+
+/* Custom Dot Grid Pattern for Canvas Workspace */
+.bg-canvas-dots {
+  background-image: radial-gradient(#CBD5E1 1.2px, transparent 1.2px);
+  background-size: 20px 20px;
+}
+
+/* Custom Scrollbars for Engineering Panels */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #F1F5F9;
+}
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}
+
+/* Real-time Signal Propagation Edge Animations */
+@keyframes signalFlow {
+  from {
+    stroke-dashoffset: 24;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.react-flow__edge-path.animated {
+  stroke-dasharray: 8 5;
+  animation: signalFlow 0.5s linear infinite !important;
+}
+
+.react-flow__edge.high-signal .react-flow__edge-path {
+  stroke: #DC2626 !important;
+  stroke-width: 3.5px !important;
+  filter: drop-shadow(0 0 5px rgba(220, 38, 38, 0.6));
+}
+
+.react-flow__edge.low-signal .react-flow__edge-path {
+  stroke: #94A3B8 !important;
+  stroke-width: 2px !important;
+  filter: none;
+}
+
