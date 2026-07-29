@@ -15,6 +15,7 @@ import {
   ReactFlowInstance,
 } from '@xyflow/react';
 import { nodeTypes } from '../Canvas/CustomNodes';
+import { DeletableEdge } from '../Canvas/DeletableEdge';
 import { BreadboardBackground, CanvasBackgroundType } from '../Canvas/BreadboardBackground';
 import { ComponentLibrary } from './ComponentLibrary';
 import { LogicNodeData, evaluateLogicGraph } from '../../utils/logicEngine';
@@ -49,7 +50,13 @@ import {
   ChevronLeft,
   ChevronRight,
   Sigma,
+  Scissors,
 } from 'lucide-react';
+
+const edgeTypes = {
+  default: DeletableEdge,
+  deletable: DeletableEdge,
+};
 
 interface CreatePhaseProps {
   module: PracticumModule;
@@ -220,6 +227,65 @@ export const CreatePhase: React.FC<CreatePhaseProps> = ({
     [edges, setNodes]
   );
 
+  // Context menu state for wire edges
+  const [edgeContextMenu, setEdgeContextMenu] = useState<{
+    x: number;
+    y: number;
+    edgeId: string;
+  } | null>(null);
+
+  // Close wire context menu when clicking outside
+  useEffect(() => {
+    const handleCloseMenu = () => setEdgeContextMenu(null);
+    window.addEventListener('click', handleCloseMenu);
+    return () => window.removeEventListener('click', handleCloseMenu);
+  }, []);
+
+  // Delete single edge handler
+  const handleDeleteEdge = useCallback(
+    (edgeId: string) => {
+      setEdges((eds) => {
+        const updated = eds.filter((e) => e.id !== edgeId);
+        const evalRes = evaluateLogicGraph(nodes, updated);
+        return evalRes.evaluatedEdges;
+      });
+    },
+    [nodes, setEdges]
+  );
+
+  // Clear all wire edges handler
+  const handleDeleteAllEdges = useCallback(() => {
+    setEdges([]);
+    setNodes((prevNodes) => {
+      const evalRes = evaluateLogicGraph(prevNodes, []);
+      return evalRes.evaluatedNodes;
+    });
+  }, [setNodes, setEdges]);
+
+  // Handle explicit edge deletion from ReactFlow keyboard shortcuts (Delete/Backspace)
+  const onEdgesDelete = useCallback(
+    (edgesToDelete: Edge[]) => {
+      setEdges((eds) => {
+        const deleteIds = new Set(edgesToDelete.map((e) => e.id));
+        const updated = eds.filter((e) => !deleteIds.has(e.id));
+        const evalRes = evaluateLogicGraph(nodes, updated);
+        return evalRes.evaluatedEdges;
+      });
+    },
+    [nodes, setEdges]
+  );
+
+  // Right-click wire edge context menu handler
+  const handleEdgeContextMenu = useCallback((event: React.MouseEvent, edgeId: string) => {
+    event.preventDefault();
+    event.stopPropagation();
+    setEdgeContextMenu({
+      x: event.clientX,
+      y: event.clientY,
+      edgeId,
+    });
+  }, []);
+
   // Handle edge connections and deletion
   const onEdgesChange = useCallback(
     (changes: EdgeChange[]) => {
@@ -242,6 +308,7 @@ export const CreatePhase: React.FC<CreatePhaseProps> = ({
           target: connection.target,
           sourceHandle: connection.sourceHandle,
           targetHandle: connection.targetHandle,
+          type: 'deletable',
           animated: true,
           style: { stroke: '#2563EB', strokeWidth: 2.5 },
         };
@@ -290,6 +357,17 @@ export const CreatePhase: React.FC<CreatePhaseProps> = ({
       onToggle: handleToggleSwitch,
       onChangeTemp: handleChangeTemp,
       onToggleMotion: handleToggleMotion,
+    },
+  }));
+
+  // Prepared Edges with custom interactive data callbacks
+  const preparedEdges = edges.map((e) => ({
+    ...e,
+    type: 'deletable',
+    data: {
+      ...e.data,
+      onDeleteEdge: handleDeleteEdge,
+      onEdgeContextMenu: (evt: React.MouseEvent, id: string) => handleEdgeContextMenu(evt, id),
     },
   }));
 
@@ -452,6 +530,19 @@ export const CreatePhase: React.FC<CreatePhaseProps> = ({
                   <Magnet className={`w-3.5 h-3.5 ${snapToGrid ? 'text-emerald-600' : 'text-[#64748B]'}`} />
                   <span>Snap 20px: {snapToGrid ? 'ON' : 'OFF'}</span>
                 </button>
+
+                <div className="h-4 w-px bg-[#E2E8F0] mx-0.5" />
+
+                {/* Hapus Semua Kabel / Clear All Connecting Wires Button */}
+                <button
+                  onClick={handleDeleteAllEdges}
+                  disabled={edges.length === 0}
+                  className="px-2.5 py-1 rounded text-[11px] font-bold transition-all flex items-center gap-1.5 border bg-red-50 hover:bg-red-100 text-red-700 border-red-200 active:scale-95 disabled:opacity-40 disabled:pointer-events-none"
+                  title="Hapus semua garis sambungan kabel dari canvas"
+                >
+                  <Scissors className="w-3.5 h-3.5 text-red-600" />
+                  <span>Bersihkan Kabel ({edges.length})</span>
+                </button>
               </div>
 
               {/* Right Group: Boolean Analysis Toggle & Expand Canvas */}
@@ -523,12 +614,15 @@ export const CreatePhase: React.FC<CreatePhaseProps> = ({
             {/* Core ReactFlow Canvas */}
             <ReactFlow
               nodes={preparedNodes}
-              edges={edges}
+              edges={preparedEdges}
               onNodesChange={onNodesChange}
               onEdgesChange={onEdgesChange}
+              onEdgesDelete={onEdgesDelete}
               onConnect={onConnect}
               onInit={setReactFlowInstance}
               nodeTypes={nodeTypes}
+              edgeTypes={edgeTypes}
+              deleteKeyCode={['Backspace', 'Delete']}
               fitView
               colorMode="light"
               snapToGrid={snapToGrid}
@@ -537,6 +631,73 @@ export const CreatePhase: React.FC<CreatePhaseProps> = ({
               {bgType === 'dots' && <Background variant={BackgroundVariant.Dots} gap={20} size={1.2} color="#CBD5E1" />}
               <Controls className="!bg-white !border-[#D1D5DB] !text-[#1A1C1E] !shadow-sm !top-16" />
             </ReactFlow>
+
+            {/* Floating Selection Panel for Deleting Selected Wire Edges */}
+            {preparedEdges.some((e) => e.selected) && (
+              <div className="absolute bottom-5 left-1/2 -translate-x-1/2 z-30 bg-slate-900/95 text-white backdrop-blur-md px-4 py-2.5 rounded-xl border border-slate-700 shadow-2xl flex items-center gap-3 animate-in fade-in slide-in-from-bottom-3 duration-200">
+                <div className="flex items-center gap-2 text-xs font-mono font-bold text-amber-300">
+                  <Zap className="w-4 h-4 text-amber-400" />
+                  <span>{preparedEdges.filter((e) => e.selected).length} Garis Terpilih</span>
+                </div>
+
+                <div className="h-4 w-px bg-slate-700" />
+
+                <button
+                  onClick={() => {
+                    setEdges((eds) => {
+                      const updated = eds.filter((e) => !e.selected);
+                      const evalRes = evaluateLogicGraph(nodes, updated);
+                      return evalRes.evaluatedEdges;
+                    });
+                  }}
+                  className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-extrabold flex items-center gap-1.5 transition-all shadow-sm active:scale-95 cursor-pointer"
+                  title="Hapus garis terpilih (Atau tekan tombol Delete / Backspace pada keyboard)"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>Hapus Garis (Delete)</span>
+                </button>
+              </div>
+            )}
+
+            {/* Context Menu Popup for Right-Clicked Wire Edge */}
+            {edgeContextMenu && (
+              <div
+                style={{ top: edgeContextMenu.y - 120, left: edgeContextMenu.x - 40 }}
+                className="fixed z-50 bg-slate-900 border border-slate-700 text-white rounded-xl shadow-2xl p-1.5 w-52 text-xs font-semibold animate-in fade-in zoom-in-95 duration-150"
+              >
+                <div className="px-2.5 py-1.5 border-b border-slate-800 text-[10px] font-mono text-slate-400 font-bold uppercase tracking-wider flex items-center justify-between">
+                  <span>Opsi Garis Penghubung</span>
+                  <span className="text-amber-400">#Kabel</span>
+                </div>
+                <button
+                  onClick={() => {
+                    handleDeleteEdge(edgeContextMenu.edgeId);
+                    setEdgeContextMenu(null);
+                  }}
+                  className="w-full text-left px-3 py-2 rounded-lg hover:bg-red-600/30 hover:text-red-300 text-red-400 font-bold flex items-center gap-2 transition-colors mt-1 cursor-pointer"
+                >
+                  <Trash2 className="w-4 h-4 text-red-500" />
+                  <span>Hapus Garis Ini</span>
+                </button>
+                <button
+                  onClick={() => {
+                    handleDeleteAllEdges();
+                    setEdgeContextMenu(null);
+                  }}
+                  className="w-full text-left px-3 py-2 rounded-lg hover:bg-slate-800 text-slate-300 flex items-center gap-2 transition-colors cursor-pointer"
+                >
+                  <Scissors className="w-4 h-4 text-amber-400" />
+                  <span>Hapus Semua Kabel ({edges.length})</span>
+                </button>
+                <button
+                  onClick={() => setEdgeContextMenu(null)}
+                  className="w-full text-left px-3 py-2 rounded-lg hover:bg-slate-800 text-slate-400 flex items-center gap-2 transition-colors border-t border-slate-800 mt-1 cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                  <span>Batal</span>
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
